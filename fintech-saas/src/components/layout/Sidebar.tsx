@@ -25,15 +25,19 @@ export default function Sidebar() {
         <aside className="w-[260px] h-screen bg-bg-secondary flex flex-col border-r border-border-primary">
             {/* Logo Section */}
             <div className="p-6">
-                <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-accent-blue flex items-center justify-center text-white font-bold text-lg">
-                        T
+                <Link href="/" className="flex items-center gap-3 group">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-accent-blue to-accent-purple flex items-center justify-center text-white shadow-lg shadow-accent-blue/20 group-hover:scale-105 transition-transform">
+                        <span className="text-2xl" role="img" aria-label="jester">🃏</span>
                     </div>
-                    <div>
-                        <span className="text-lg font-semibold">tradeapp</span>
-                        <span className="ml-1 px-1.5 py-0.5 bg-accent-coral text-xs rounded-full">3</span>
+                    <div className="flex flex-col">
+                        <span className="text-lg font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-text-primary to-text-secondary">
+                            TradeJester
+                        </span>
+                        <span className="text-[10px] uppercase tracking-widest text-accent-coral font-bold -mt-1">
+                            Fintech SaaS
+                        </span>
                     </div>
-                </div>
+                </Link>
             </div>
 
             {/* Action Buttons */}
