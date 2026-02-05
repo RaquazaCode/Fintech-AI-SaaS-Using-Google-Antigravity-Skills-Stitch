@@ -6,6 +6,7 @@ import {
     ResponsiveContainer,
 } from 'recharts';
 import { useQuote, useRealtimeQuote, useCandles } from '@/lib/finnhub/hooks';
+import Link from 'next/link';
 
 // Mock data for initial names and logos
 const WATCHLIST_INFO: Record<string, { name: string, logo: string }> = {
@@ -119,9 +120,9 @@ export default function WatchlistPanel() {
                 ))}
             </div>
 
-            <button className="w-full mt-6 py-2 text-sm text-text-secondary hover:text-text-primary transition-colors border-t border-border-primary pt-4">
+            <Link href="/symbols" className="w-full mt-6 py-2 block text-center text-sm text-text-secondary hover:text-text-primary transition-colors border-t border-border-primary pt-4">
                 View all watchlist
-            </button>
+            </Link>
         </div>
     );
 }

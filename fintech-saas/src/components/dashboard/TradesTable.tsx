@@ -6,6 +6,7 @@ import {
     ResponsiveContainer,
 } from 'recharts';
 import { useQuote, useRealtimeQuote, useCandles } from '@/lib/finnhub/hooks';
+import Link from 'next/link';
 
 // Mock data for initial names and logos
 const TRADE_INFO: Record<string, { name: string, logo: string, initialProfit: number }> = {
@@ -118,7 +119,9 @@ export default function TradesTable() {
         <div className="card">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold">My Trades</h2>
-                <button className="text-sm text-accent-blue hover:underline">View all</button>
+                <Link href="/trades" className="text-sm text-accent-blue hover:underline">
+                    View history
+                </Link>
             </div>
 
             <div className="overflow-x-auto">

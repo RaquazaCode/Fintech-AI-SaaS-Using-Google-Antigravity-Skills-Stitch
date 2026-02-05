@@ -1,6 +1,7 @@
 'use client';
 
 import { useMarketNews } from '@/lib/finnhub/hooks';
+import Link from 'next/link';
 
 export default function NewsPanel() {
     const { news, isLoading } = useMarketNews('general', 4);
