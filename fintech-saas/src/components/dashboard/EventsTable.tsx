@@ -59,13 +59,19 @@ export default function EventsTable() {
 
                                 {/* EPS Estimate */}
                                 <td className="py-3 text-right">
-                                    <span className="font-medium">${event.epsEstimate.toFixed(2)}</span>
+                                    <span className="font-medium">
+                                        {event.epsEstimate !== null && event.epsEstimate !== undefined
+                                            ? `$${event.epsEstimate.toFixed(2)}`
+                                            : 'N/A'}
+                                    </span>
                                 </td>
 
                                 {/* Revenue Estimate */}
                                 <td className="py-3 text-right">
                                     <span className="text-text-secondary">
-                                        {(event.revenueEstimate / 1e9).toFixed(1)}B
+                                        {event.revenueEstimate !== null && event.revenueEstimate !== undefined
+                                            ? `${(event.revenueEstimate / 1e9).toFixed(1)}B`
+                                            : 'N/A'}
                                     </span>
                                 </td>
                             </tr>

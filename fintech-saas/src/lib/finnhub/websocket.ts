@@ -35,48 +35,61 @@ class FinnhubWebSocket {
     private reconnectAttempts = 0;
     private maxReconnectAttempts = 5;
     private reconnectDelay = 1000;
-    private isConnected = false;
     private pendingSubscriptions: string[] = [];
+    private connectionPromise: Promise<void> | null = null;
 
     constructor(apiKey: string = process.env.NEXT_PUBLIC_FINNHUB_API_KEY || '') {
         this.apiKey = apiKey;
+        if (typeof window !== 'undefined') {
+            (window as any).finnhubWS = this;
+        }
     }
 
     /**
      * Connect to the WebSocket server
      */
     connect(): Promise<void> {
-        return new Promise((resolve, reject) => {
-            if (this.isConnected && this.ws) {
-                resolve();
-                return;
-            }
+        if (this.connectionPromise) {
+            return this.connectionPromise;
+        }
 
+        if (this.ws?.readyState === WebSocket.OPEN) {
+            return Promise.resolve();
+        }
+
+        this.connectionPromise = new Promise((resolve, reject) => {
             try {
-                this.ws = new WebSocket(`wss://ws.finnhub.io?token=${this.apiKey}`);
+                if (typeof window === 'undefined') {
+                    resolve();
+                    return;
+                }
+
+                console.log('[Finnhub WS] Connecting...');
+                const wsUrl = `wss://ws.finnhub.io?token=${this.apiKey}`;
+                this.ws = new WebSocket(wsUrl);
 
                 this.ws.onopen = () => {
                     console.log('[Finnhub WS] Connected');
-                    this.isConnected = true;
                     this.reconnectAttempts = 0;
+                    this.connectionPromise = null;
 
                     // Resubscribe to pending symbols
-                    this.pendingSubscriptions.forEach(symbol => {
-                        this.sendSubscribe(symbol);
-                    });
+                    const symbols = [...this.pendingSubscriptions];
                     this.pendingSubscriptions = [];
+                    symbols.forEach(symbol => this.sendSubscribe(symbol));
 
                     resolve();
                 };
 
                 this.ws.onclose = () => {
                     console.log('[Finnhub WS] Disconnected');
-                    this.isConnected = false;
+                    this.connectionPromise = null;
                     this.handleReconnect();
                 };
 
                 this.ws.onerror = (error) => {
                     console.error('[Finnhub WS] Error:', error);
+                    this.connectionPromise = null;
                     reject(error);
                 };
 
@@ -84,9 +97,12 @@ class FinnhubWebSocket {
                     this.handleMessage(event.data);
                 };
             } catch (error) {
+                this.connectionPromise = null;
                 reject(error);
             }
         });
+
+        return this.connectionPromise;
     }
 
     /**
@@ -139,8 +155,16 @@ class FinnhubWebSocket {
      * Send subscribe message
      */
     private sendSubscribe(symbol: string) {
-        if (this.ws && this.isConnected) {
-            this.ws.send(JSON.stringify({ type: 'subscribe', symbol }));
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            try {
+                this.ws.send(JSON.stringify({ type: 'subscribe', symbol }));
+            } catch (err) {
+                console.error('[Finnhub WS] Failed to send subscribe:', err);
+            }
+        } else {
+            if (!this.pendingSubscriptions.includes(symbol)) {
+                this.pendingSubscriptions.push(symbol);
+            }
         }
     }
 
@@ -148,8 +172,12 @@ class FinnhubWebSocket {
      * Send unsubscribe message
      */
     private sendUnsubscribe(symbol: string) {
-        if (this.ws && this.isConnected) {
-            this.ws.send(JSON.stringify({ type: 'unsubscribe', symbol }));
+        if (this.ws && this.ws.readyState === WebSocket.OPEN) {
+            try {
+                this.ws.send(JSON.stringify({ type: 'unsubscribe', symbol }));
+            } catch (err) {
+                console.error('[Finnhub WS] Failed to send unsubscribe:', err);
+            }
         }
     }
 
@@ -164,10 +192,12 @@ class FinnhubWebSocket {
         if (!this.subscriptions.has(symbol)) {
             this.subscriptions.set(symbol, new Set());
 
-            if (this.isConnected) {
+            if (this.ws?.readyState === WebSocket.OPEN) {
                 this.sendSubscribe(symbol);
             } else {
-                this.pendingSubscriptions.push(symbol);
+                if (!this.pendingSubscriptions.includes(symbol)) {
+                    this.pendingSubscriptions.push(symbol);
+                }
             }
         }
 
@@ -199,7 +229,7 @@ class FinnhubWebSocket {
      * Check if connected
      */
     isActive(): boolean {
-        return this.isConnected;
+        return this.ws !== null && this.ws.readyState === WebSocket.OPEN;
     }
 
     /**

@@ -16,7 +16,8 @@ export default function NewsPanel() {
         return `${days}d ago`;
     };
 
-    const formatPercent = (value: number) => {
+    const formatPercent = (value: number | null | undefined) => {
+        if (value === null || value === undefined) return '0.00%';
         const prefix = value >= 0 ? '+' : '';
         return `${prefix}${value.toFixed(2)}%`;
     };
