@@ -1,60 +1,12 @@
 'use client';
 
-import { useState } from 'react';
-
-// Mock news data - will be replaced with Finnhub getMarketNews()
-const mockNews = [
-    {
-        id: 1,
-        headline: 'Fed Signals Potential Rate Cuts in 2024 as Inflation Cools',
-        source: 'Reuters',
-        datetime: Date.now() - 3600000, // 1 hour ago
-        image: 'https://images.unsplash.com/photo-1611974789855-9c2a0a7236a3?w=200&h=120&fit=crop',
-        related: 'SPY',
-        relatedChange: 1.24,
-        summary: 'Federal Reserve officials indicated they may begin cutting interest rates this year...',
-        url: '#',
-    },
-    {
-        id: 2,
-        headline: 'NVIDIA Announces Next-Gen AI Chips at Annual Conference',
-        source: 'Bloomberg',
-        datetime: Date.now() - 7200000, // 2 hours ago
-        image: 'https://images.unsplash.com/photo-1518770660439-4636190af475?w=200&h=120&fit=crop',
-        related: 'NVDA',
-        relatedChange: 3.45,
-        summary: 'The chipmaker unveiled its latest generation of AI accelerators...',
-        url: '#',
-    },
-    {
-        id: 3,
-        headline: 'Apple Expands AI Features Across Product Lineup',
-        source: 'CNBC',
-        datetime: Date.now() - 14400000, // 4 hours ago
-        image: 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=200&h=120&fit=crop',
-        related: 'AAPL',
-        relatedChange: 0.87,
-        summary: 'Apple announced significant AI upgrades coming to iPhone, iPad, and Mac...',
-        url: '#',
-    },
-    {
-        id: 4,
-        headline: 'Oil Prices Rise on Middle East Supply Concerns',
-        source: 'Financial Times',
-        datetime: Date.now() - 21600000, // 6 hours ago
-        image: 'https://images.unsplash.com/photo-1473341304170-971dccb5ac1e?w=200&h=120&fit=crop',
-        related: 'USO',
-        relatedChange: 2.12,
-        summary: 'Crude oil futures climbed as traders assessed risks to global supply...',
-        url: '#',
-    },
-];
+import { useMarketNews } from '@/lib/finnhub/hooks';
 
 export default function NewsPanel() {
-    const [news] = useState(mockNews);
+    const { news, isLoading } = useMarketNews('general', 4);
 
     const formatTimeAgo = (timestamp: number) => {
-        const seconds = Math.floor((Date.now() - timestamp) / 1000);
+        const seconds = Math.floor((Date.now() - timestamp * 1000) / 1000);
         if (seconds < 60) return 'Just now';
         const minutes = Math.floor(seconds / 60);
         if (minutes < 60) return `${minutes}m ago`;
@@ -69,6 +21,25 @@ export default function NewsPanel() {
         return `${prefix}${value.toFixed(2)}%`;
     };
 
+    if (isLoading && news.length === 0) {
+        return (
+            <div className="card animate-pulse">
+                <div className="h-6 bg-bg-primary rounded w-1/3 mb-6"></div>
+                <div className="space-y-4">
+                    {[1, 2, 3, 4].map(i => (
+                        <div key={i} className="flex gap-4 p-3">
+                            <div className="w-24 h-16 bg-bg-primary rounded-lg"></div>
+                            <div className="flex-1 space-y-2">
+                                <div className="h-4 bg-bg-primary rounded w-full"></div>
+                                <div className="h-4 bg-bg-primary rounded w-2/3"></div>
+                            </div>
+                        </div>
+                    ))}
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="card">
             <div className="flex items-center justify-between mb-6">
@@ -81,14 +52,22 @@ export default function NewsPanel() {
                     <a
                         key={item.id}
                         href={item.url}
-                        className="flex gap-4 p-3 rounded-xl hover:bg-bg-elevated transition-colors group"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex gap-4 p-3 rounded-xl hover:bg-bg-primary transition-colors group"
                     >
                         {/* Thumbnail */}
-                        <div className="w-24 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-bg-elevated">
-                            <div
-                                className="w-full h-full bg-center bg-cover"
-                                style={{ backgroundImage: `url(${item.image})` }}
-                            />
+                        <div className="w-24 h-16 flex-shrink-0 rounded-lg overflow-hidden bg-bg-primary">
+                            {item.image ? (
+                                <div
+                                    className="w-full h-full bg-center bg-cover"
+                                    style={{ backgroundImage: `url(${item.image})` }}
+                                />
+                            ) : (
+                                <div className="w-full h-full flex items-center justify-center text-text-secondary">
+                                    📰
+                                </div>
+                            )}
                         </div>
 
                         {/* Content */}
@@ -105,9 +84,6 @@ export default function NewsPanel() {
                                         <span>•</span>
                                         <span className="flex items-center gap-1">
                                             <span className="font-medium text-text-primary">{item.related}</span>
-                                            <span className={item.relatedChange >= 0 ? 'text-success' : 'text-accent-coral'}>
-                                                {formatPercent(item.relatedChange)}
-                                            </span>
                                         </span>
                                     </>
                                 )}

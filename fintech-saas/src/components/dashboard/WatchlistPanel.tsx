@@ -1,54 +1,29 @@
 'use client';
 
-import { useState } from 'react';
 import {
     LineChart,
     Line,
     ResponsiveContainer,
 } from 'recharts';
+import { useQuote, useRealtimeQuote } from '@/lib/finnhub/hooks';
 
-// Mock watchlist data - will be replaced with Finnhub data
-const mockWatchlist = [
-    {
-        symbol: 'AMZN',
-        name: 'Amazon.com Inc.',
-        logo: '📦',
-        price: 178.25,
-        change: 2.15,
-        changePercent: 1.22,
-        chartData: [175, 176, 177, 176, 178, 177, 178],
-    },
-    {
-        symbol: 'META',
-        name: 'Meta Platforms',
-        logo: '👤',
-        price: 505.68,
-        change: 8.45,
-        changePercent: 1.70,
-        chartData: [495, 498, 502, 500, 504, 503, 506],
-    },
-    {
-        symbol: 'AMD',
-        name: 'Advanced Micro Devices',
-        logo: '🔴',
-        price: 164.32,
-        change: -2.18,
-        changePercent: -1.31,
-        chartData: [168, 167, 165, 166, 164, 165, 164],
-    },
-    {
-        symbol: 'NFLX',
-        name: 'Netflix Inc.',
-        logo: '🎬',
-        price: 628.90,
-        change: 12.34,
-        changePercent: 2.00,
-        chartData: [615, 618, 622, 620, 625, 627, 629],
-    },
-];
+// Mock data for initial names and logos
+const WATCHLIST_INFO: Record<string, { name: string, logo: string }> = {
+    'META': { name: 'Meta Platforms', logo: '💙' },
+    'NFLX': { name: 'Netflix, Inc.', logo: '🍎' }, // Using red apple as placeholder logo
+    'AMZN': { name: 'Amazon.com', logo: '📦' },
+    'COIN': { name: 'Coinbase Global', logo: '🪙' },
+};
 
-export default function WatchlistPanel() {
-    const [watchlist] = useState(mockWatchlist);
+const SYMBOLS = Object.keys(WATCHLIST_INFO);
+
+function WatchlistItem({ symbol }: { symbol: string }) {
+    const { quote, isLoading } = useQuote(symbol);
+    const { price: livePrice } = useRealtimeQuote(symbol);
+    const info = WATCHLIST_INFO[symbol];
+
+    const currentPrice = livePrice || quote?.c || 0;
+    const changePercent = quote?.dp || 0;
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('en-US', {
@@ -63,59 +38,85 @@ export default function WatchlistPanel() {
         return `${prefix}${value.toFixed(2)}%`;
     };
 
+    // Simulated chart data
+    const chartData = [
+        { v: quote?.o || 0 },
+        { v: quote?.l || 0 },
+        { v: quote?.h || 0 },
+        { v: currentPrice }
+    ];
+
+    if (isLoading && !quote) {
+        return (
+            <div className="animate-pulse flex items-center gap-3 p-3">
+                <div className="w-10 h-10 rounded-full bg-bg-primary"></div>
+                <div className="flex-1 h-6 bg-bg-primary rounded"></div>
+            </div>
+        );
+    }
+
+    return (
+        <div
+            key={symbol}
+            className="flex items-center gap-3 p-3 rounded-xl hover:bg-bg-primary transition-colors cursor-pointer"
+        >
+            {/* Logo */}
+            <div className="w-10 h-10 rounded-full bg-bg-primary flex items-center justify-center text-xl flex-shrink-0">
+                {info.logo}
+            </div>
+
+            {/* Symbol & Name */}
+            <div className="flex-1 min-w-0">
+                <div className="font-medium">{symbol}</div>
+                <div className="text-xs text-text-secondary truncate">{info.name}</div>
+            </div>
+
+            {/* Chart */}
+            <div className="w-16 flex-shrink-0">
+                <ResponsiveContainer width={64} height={28}>
+                    <LineChart data={chartData}>
+                        <Line
+                            type="monotone"
+                            dataKey="v"
+                            stroke={changePercent >= 0 ? '#00B29C' : '#FF6363'}
+                            strokeWidth={1.5}
+                            dot={false}
+                        />
+                    </LineChart>
+                </ResponsiveContainer>
+            </div>
+
+            {/* Price */}
+            <div className="text-right flex-shrink-0">
+                <div className="font-medium text-sm">{formatCurrency(currentPrice)}</div>
+                <div className={`text-xs ${changePercent >= 0 ? 'text-success' : 'text-accent-coral'}`}>
+                    {formatPercent(changePercent)}
+                </div>
+            </div>
+        </div>
+    );
+}
+
+export default function WatchlistPanel() {
     return (
         <div className="card h-full">
             <div className="flex items-center justify-between mb-6">
-                <h2 className="text-lg font-semibold">My Watchlist</h2>
-                <button className="text-sm text-accent-blue hover:underline">Edit</button>
+                <h2 className="text-lg font-semibold">Watchlist</h2>
+                <button className="p-1.5 hover:bg-bg-primary rounded-lg transition-colors">
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                    </svg>
+                </button>
             </div>
 
             <div className="space-y-4">
-                {watchlist.map((item) => (
-                    <div
-                        key={item.symbol}
-                        className="flex items-center gap-3 p-3 rounded-xl hover:bg-bg-elevated transition-colors cursor-pointer"
-                    >
-                        {/* Logo */}
-                        <div className="w-10 h-10 rounded-full bg-bg-elevated flex items-center justify-center text-xl flex-shrink-0">
-                            {item.logo}
-                        </div>
-
-                        {/* Symbol & Name */}
-                        <div className="flex-1 min-w-0">
-                            <div className="font-medium">{item.symbol}</div>
-                            <div className="text-xs text-text-secondary truncate">{item.name}</div>
-                        </div>
-
-                        {/* Chart */}
-                        <div className="w-16 flex-shrink-0">
-                            <ResponsiveContainer width={64} height={28}>
-                                <LineChart data={item.chartData.map((v, i) => ({ v, i }))}>
-                                    <Line
-                                        type="monotone"
-                                        dataKey="v"
-                                        stroke={item.changePercent >= 0 ? '#22C55E' : '#F97066'}
-                                        strokeWidth={1.5}
-                                        dot={false}
-                                    />
-                                </LineChart>
-                            </ResponsiveContainer>
-                        </div>
-
-                        {/* Price */}
-                        <div className="text-right flex-shrink-0">
-                            <div className="font-medium text-sm">{formatCurrency(item.price)}</div>
-                            <div className={`text-xs ${item.changePercent >= 0 ? 'text-success' : 'text-accent-coral'}`}>
-                                {formatPercent(item.changePercent)}
-                            </div>
-                        </div>
-                    </div>
+                {SYMBOLS.map((symbol) => (
+                    <WatchlistItem key={symbol} symbol={symbol} />
                 ))}
             </div>
 
-            {/* Add Symbol Button */}
-            <button className="w-full mt-4 py-3 border border-dashed border-border-secondary rounded-xl text-text-secondary hover:border-accent-blue hover:text-accent-blue transition-colors text-sm">
-                + Add symbol
+            <button className="w-full mt-6 py-2 text-sm text-text-secondary hover:text-text-primary transition-colors border-t border-border-primary pt-4">
+                View all watchlist
             </button>
         </div>
     );

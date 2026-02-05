@@ -10,31 +10,31 @@ const config: Config = {
         extend: {
             colors: {
                 // Primary backgrounds
-                "bg-primary": "#0B0F14",
-                "bg-secondary": "#11161D",
-                "bg-card": "#141B23",
-                "bg-elevated": "#1A222C",
+                "bg-primary": "#F4F9FF",
+                "bg-secondary": "#FFFFFF",
+                "bg-card": "#FFFFFF",
+                "bg-elevated": "#FFFFFF",
 
                 // Border colors
-                "border-primary": "#1B2430",
-                "border-secondary": "#2A3441",
+                "border-primary": "#E3E6ED",
+                "border-secondary": "#D1D5DB",
 
                 // Text colors
-                "text-primary": "#FFFFFF",
-                "text-secondary": "#8892A0",
-                "text-muted": "#5A6573",
+                "text-primary": "#121D28",
+                "text-secondary": "#626E7A",
+                "text-muted": "#99A2A9",
 
                 // Accent colors
-                "accent-blue": "#3B82F6",
-                "accent-teal": "#14B8A6",
-                "accent-coral": "#F97066",
+                "accent-blue": "#0082FF",
+                "accent-teal": "#00B29C",
+                "accent-coral": "#FF6363",
                 "accent-purple": "#8B5CF6",
 
                 // Semantic colors
-                "success": "#22C55E",
+                "success": "#00B29C",
                 "warning": "#F59E0B",
-                "error": "#EF4444",
-                "info": "#3B82F6",
+                "error": "#FF6363",
+                "info": "#2BBCFF",
             },
             fontFamily: {
                 sans: ["var(--font-inter)", "Inter", "SF Pro Display", "-apple-system", "BlinkMacSystemFont", "sans-serif"],

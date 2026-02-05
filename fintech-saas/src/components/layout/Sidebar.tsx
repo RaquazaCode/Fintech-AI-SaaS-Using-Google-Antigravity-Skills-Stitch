@@ -42,7 +42,7 @@ export default function Sidebar() {
                     <span className="text-lg">+</span>
                     Start Trade
                 </button>
-                <button className="w-full py-3 px-4 bg-bg-elevated hover:bg-bg-card rounded-xl text-text-primary font-medium transition-all border border-border-primary flex items-center justify-center gap-2">
+                <button className="w-full py-3 px-4 bg-bg-primary hover:bg-bg-secondary rounded-xl text-text-primary font-medium transition-all border border-border-primary flex items-center justify-center gap-2">
                     <span className="text-lg">↑</span>
                     Top Up
                 </button>
@@ -58,8 +58,8 @@ export default function Sidebar() {
                                 <Link
                                     href={item.href}
                                     className={`flex items-center gap-3 px-4 py-3 rounded-xl transition-all ${isActive
-                                            ? 'bg-accent-blue/10 text-accent-blue'
-                                            : 'text-text-secondary hover:bg-bg-elevated hover:text-text-primary'
+                                        ? 'bg-accent-blue/10 text-accent-blue'
+                                        : 'text-text-secondary hover:bg-bg-primary hover:text-text-primary'
                                         }`}
                                 >
                                     <span className="text-lg">{item.icon}</span>

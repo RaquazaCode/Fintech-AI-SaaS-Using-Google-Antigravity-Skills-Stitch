@@ -1,68 +1,31 @@
 'use client';
 
-import { useState, useEffect } from 'react';
 import {
     LineChart,
     Line,
     ResponsiveContainer,
 } from 'recharts';
+import { useQuote, useRealtimeQuote } from '@/lib/finnhub/hooks';
 
-// Mock data for trades - will be replaced with Finnhub data
-const mockTrades = [
-    {
-        symbol: 'AAPL',
-        name: 'Apple Inc.',
-        logo: '🍎',
-        price: 178.42,
-        change: 2.34,
-        changePercent: 1.33,
-        profit: 1245.67,
-        chartData: [170, 172, 175, 173, 178, 176, 178],
-    },
-    {
-        symbol: 'TSLA',
-        name: 'Tesla, Inc.',
-        logo: '⚡',
-        price: 242.89,
-        change: -5.12,
-        changePercent: -2.06,
-        profit: -320.45,
-        chartData: [250, 248, 245, 247, 243, 244, 243],
-    },
-    {
-        symbol: 'NVDA',
-        name: 'NVIDIA Corporation',
-        logo: '💚',
-        price: 875.28,
-        change: 15.67,
-        changePercent: 1.82,
-        profit: 2890.12,
-        chartData: [850, 855, 860, 858, 870, 872, 875],
-    },
-    {
-        symbol: 'MSFT',
-        name: 'Microsoft Corp.',
-        logo: '🪟',
-        price: 378.91,
-        change: 3.45,
-        changePercent: 0.92,
-        profit: 567.89,
-        chartData: [372, 374, 376, 375, 377, 378, 379],
-    },
-    {
-        symbol: 'GOOGL',
-        name: 'Alphabet Inc.',
-        logo: '🔍',
-        price: 141.23,
-        change: 1.89,
-        changePercent: 1.36,
-        profit: 432.10,
-        chartData: [138, 139, 140, 139, 141, 140, 141],
-    },
-];
+// Mock data for initial names and logos
+const TRADE_INFO: Record<string, { name: string, logo: string, initialProfit: number }> = {
+    'AAPL': { name: 'Apple Inc.', logo: '🍎', initialProfit: 1245.67 },
+    'TSLA': { name: 'Tesla, Inc.', logo: '⚡', initialProfit: -320.45 },
+    'NVDA': { name: 'NVIDIA Corporation', logo: '💚', initialProfit: 2890.12 },
+    'MSFT': { name: 'Microsoft Corp.', logo: '🪟', initialProfit: 567.89 },
+    'GOOGL': { name: 'Alphabet Inc.', logo: '🔍', initialProfit: 432.10 },
+};
 
-export default function TradesTable() {
-    const [trades] = useState(mockTrades);
+const SYMBOLS = Object.keys(TRADE_INFO);
+
+function TradeRow({ symbol }: { symbol: string }) {
+    const { quote, isLoading } = useQuote(symbol);
+    const { price: livePrice } = useRealtimeQuote(symbol);
+    const info = TRADE_INFO[symbol];
+
+    const currentPrice = livePrice || quote?.c || 0;
+    const changePercent = quote?.dp || 0;
+    const profit = info.initialProfit + (currentPrice - (quote?.pc || currentPrice)) * 100; // Simulated profit for demo
 
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('en-US', {
@@ -77,6 +40,76 @@ export default function TradesTable() {
         return `${prefix}${value.toFixed(2)}%`;
     };
 
+    // Simulated chart data
+    const chartData = [
+        { v: quote?.o || 0 },
+        { v: quote?.l || 0 },
+        { v: quote?.h || 0 },
+        { v: currentPrice }
+    ];
+
+    if (isLoading && !quote) {
+        return (
+            <tr className="animate-pulse border-b border-border-primary">
+                <td className="py-4" colSpan={4}>
+                    <div className="h-10 bg-bg-primary rounded-lg w-full"></div>
+                </td>
+            </tr>
+        );
+    }
+
+    return (
+        <tr
+            key={symbol}
+            className="border-b border-border-primary last:border-0 hover:bg-bg-primary transition-colors cursor-pointer"
+        >
+            {/* Symbol Column */}
+            <td className="py-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-full bg-bg-primary flex items-center justify-center text-xl">
+                        {info.logo}
+                    </div>
+                    <div>
+                        <div className="font-medium">{symbol}</div>
+                        <div className="text-xs text-text-secondary">{info.name}</div>
+                    </div>
+                </div>
+            </td>
+
+            {/* Sparkline Chart */}
+            <td className="py-4 w-24">
+                <ResponsiveContainer width={80} height={32}>
+                    <LineChart data={chartData}>
+                        <Line
+                            type="monotone"
+                            dataKey="v"
+                            stroke={changePercent >= 0 ? '#00B29C' : '#FF6363'}
+                            strokeWidth={1.5}
+                            dot={false}
+                        />
+                    </LineChart>
+                </ResponsiveContainer>
+            </td>
+
+            {/* Price Column */}
+            <td className="py-4 text-right">
+                <div className="font-medium">{formatCurrency(currentPrice)}</div>
+                <div className={`text-xs ${changePercent >= 0 ? 'text-success' : 'text-accent-coral'}`}>
+                    {formatPercent(changePercent)}
+                </div>
+            </td>
+
+            {/* Profit Column */}
+            <td className="py-4 text-right">
+                <div className={`font-semibold ${profit >= 0 ? 'text-success' : 'text-accent-coral'}`}>
+                    {profit >= 0 ? '+' : ''}{formatCurrency(profit)}
+                </div>
+            </td>
+        </tr>
+    );
+}
+
+export default function TradesTable() {
     return (
         <div className="card">
             <div className="flex items-center justify-between mb-6">
@@ -95,54 +128,8 @@ export default function TradesTable() {
                         </tr>
                     </thead>
                     <tbody>
-                        {trades.map((trade) => (
-                            <tr
-                                key={trade.symbol}
-                                className="border-b border-border-primary last:border-0 hover:bg-bg-elevated transition-colors cursor-pointer"
-                            >
-                                {/* Symbol Column */}
-                                <td className="py-4">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-10 h-10 rounded-full bg-bg-elevated flex items-center justify-center text-xl">
-                                            {trade.logo}
-                                        </div>
-                                        <div>
-                                            <div className="font-medium">{trade.symbol}</div>
-                                            <div className="text-xs text-text-secondary">{trade.name}</div>
-                                        </div>
-                                    </div>
-                                </td>
-
-                                {/* Sparkline Chart */}
-                                <td className="py-4 w-24">
-                                    <ResponsiveContainer width={80} height={32}>
-                                        <LineChart data={trade.chartData.map((v, i) => ({ v, i }))}>
-                                            <Line
-                                                type="monotone"
-                                                dataKey="v"
-                                                stroke={trade.changePercent >= 0 ? '#22C55E' : '#F97066'}
-                                                strokeWidth={1.5}
-                                                dot={false}
-                                            />
-                                        </LineChart>
-                                    </ResponsiveContainer>
-                                </td>
-
-                                {/* Price Column */}
-                                <td className="py-4 text-right">
-                                    <div className="font-medium">{formatCurrency(trade.price)}</div>
-                                    <div className={`text-xs ${trade.changePercent >= 0 ? 'text-success' : 'text-accent-coral'}`}>
-                                        {formatPercent(trade.changePercent)}
-                                    </div>
-                                </td>
-
-                                {/* Profit Column */}
-                                <td className="py-4 text-right">
-                                    <div className={`font-semibold ${trade.profit >= 0 ? 'text-success' : 'text-accent-coral'}`}>
-                                        {trade.profit >= 0 ? '+' : ''}{formatCurrency(trade.profit)}
-                                    </div>
-                                </td>
-                            </tr>
+                        {SYMBOLS.map((symbol) => (
+                            <TradeRow key={symbol} symbol={symbol} />
                         ))}
                     </tbody>
                 </table>
