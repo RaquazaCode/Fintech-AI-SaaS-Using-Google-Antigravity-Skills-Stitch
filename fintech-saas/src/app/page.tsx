@@ -1,4 +1,11 @@
 import { AppShell } from '@/components/layout';
+import {
+  TradesTable,
+  WatchlistPanel,
+  TopMovers,
+  NewsPanel,
+  EventsTable,
+} from '@/components/dashboard';
 
 export default function HomePage() {
   return (
@@ -10,36 +17,31 @@ export default function HomePage() {
           <p className="text-text-secondary text-sm mt-1">Your trading dashboard at a glance</p>
         </div>
 
-        {/* Dashboard Grid - Placeholder for now */}
+        {/* Dashboard Grid */}
         <div className="grid grid-cols-3 gap-6">
           {/* My Trades - spans 2 columns */}
-          <div className="col-span-2 card">
-            <h2 className="text-lg font-medium mb-4">My Trades</h2>
-            <p className="text-text-secondary text-sm">Loading trades...</p>
+          <div className="col-span-2">
+            <TradesTable />
           </div>
 
           {/* My Watchlist */}
-          <div className="card">
-            <h2 className="text-lg font-medium mb-4">My Watchlist</h2>
-            <p className="text-text-secondary text-sm">Loading watchlist...</p>
+          <div>
+            <WatchlistPanel />
           </div>
 
           {/* Today's Top Movers - full width */}
-          <div className="col-span-3 card">
-            <h2 className="text-lg font-medium mb-4">Today&apos;s Top Movers</h2>
-            <p className="text-text-secondary text-sm">Loading top movers...</p>
+          <div className="col-span-3">
+            <TopMovers />
           </div>
 
           {/* Latest News - spans 2 columns */}
-          <div className="col-span-2 card">
-            <h2 className="text-lg font-medium mb-4">Latest News</h2>
-            <p className="text-text-secondary text-sm">Loading news...</p>
+          <div className="col-span-2">
+            <NewsPanel />
           </div>
 
           {/* Upcoming Events */}
-          <div className="card">
-            <h2 className="text-lg font-medium mb-4">Upcoming Events</h2>
-            <p className="text-text-secondary text-sm">Loading events...</p>
+          <div>
+            <EventsTable />
           </div>
         </div>
       </div>
