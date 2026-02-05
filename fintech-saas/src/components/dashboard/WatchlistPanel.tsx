@@ -5,7 +5,7 @@ import {
     Line,
     ResponsiveContainer,
 } from 'recharts';
-import { useQuote, useRealtimeQuote } from '@/lib/finnhub/hooks';
+import { useQuote, useRealtimeQuote, useCandles } from '@/lib/finnhub/hooks';
 
 // Mock data for initial names and logos
 const WATCHLIST_INFO: Record<string, { name: string, logo: string }> = {
@@ -18,8 +18,9 @@ const WATCHLIST_INFO: Record<string, { name: string, logo: string }> = {
 const SYMBOLS = Object.keys(WATCHLIST_INFO);
 
 function WatchlistItem({ symbol }: { symbol: string }) {
-    const { quote, isLoading } = useQuote(symbol);
+    const { quote, isLoading: isQuoteLoading } = useQuote(symbol);
     const { price: livePrice } = useRealtimeQuote(symbol);
+    const { chartData, isLoading: isCandleLoading } = useCandles(symbol, 'D', 30);
     const info = WATCHLIST_INFO[symbol];
 
     const currentPrice = livePrice || quote?.c || 0;
@@ -39,15 +40,17 @@ function WatchlistItem({ symbol }: { symbol: string }) {
         return `${prefix}${value.toFixed(2)}%`;
     };
 
-    // Simulated chart data
-    const chartData = [
-        { v: quote?.o || 0 },
-        { v: quote?.l || 0 },
-        { v: quote?.h || 0 },
-        { v: currentPrice }
-    ];
+    // Use real historical data for chart, fallback to high/low if loading
+    const displayChartData = chartData.length > 0
+        ? chartData.map(d => ({ v: d.close }))
+        : [
+            { v: quote?.o || 0 },
+            { v: quote?.l || 0 },
+            { v: quote?.h || 0 },
+            { v: currentPrice }
+        ];
 
-    if (isLoading && !quote) {
+    if (isQuoteLoading && !quote) {
         return (
             <div className="animate-pulse flex items-center gap-3 p-3">
                 <div className="w-10 h-10 rounded-full bg-bg-primary"></div>
@@ -75,7 +78,7 @@ function WatchlistItem({ symbol }: { symbol: string }) {
             {/* Chart */}
             <div className="w-16 flex-shrink-0">
                 <ResponsiveContainer width={64} height={28}>
-                    <LineChart data={chartData}>
+                    <LineChart data={displayChartData}>
                         <Line
                             type="monotone"
                             dataKey="v"

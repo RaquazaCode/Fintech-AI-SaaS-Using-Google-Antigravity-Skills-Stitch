@@ -5,7 +5,7 @@ import {
     Line,
     ResponsiveContainer,
 } from 'recharts';
-import { useQuote, useRealtimeQuote } from '@/lib/finnhub/hooks';
+import { useQuote, useRealtimeQuote, useCandles } from '@/lib/finnhub/hooks';
 
 // Mock data for initial names and logos
 const TRADE_INFO: Record<string, { name: string, logo: string, initialProfit: number }> = {
@@ -19,8 +19,9 @@ const TRADE_INFO: Record<string, { name: string, logo: string, initialProfit: nu
 const SYMBOLS = Object.keys(TRADE_INFO);
 
 function TradeRow({ symbol }: { symbol: string }) {
-    const { quote, isLoading } = useQuote(symbol);
+    const { quote, isLoading: isQuoteLoading } = useQuote(symbol);
     const { price: livePrice } = useRealtimeQuote(symbol);
+    const { chartData, isLoading: isCandleLoading } = useCandles(symbol, 'D', 30);
     const info = TRADE_INFO[symbol];
 
     const currentPrice = livePrice || quote?.c || 0;
@@ -41,15 +42,17 @@ function TradeRow({ symbol }: { symbol: string }) {
         return `${prefix}${value.toFixed(2)}%`;
     };
 
-    // Simulated chart data
-    const chartData = [
-        { v: quote?.o || 0 },
-        { v: quote?.l || 0 },
-        { v: quote?.h || 0 },
-        { v: currentPrice }
-    ];
+    // Use real historical data for chart, fallback to high/low if loading
+    const displayChartData = chartData.length > 0
+        ? chartData.map(d => ({ v: d.close }))
+        : [
+            { v: quote?.o || 0 },
+            { v: quote?.l || 0 },
+            { v: quote?.h || 0 },
+            { v: currentPrice }
+        ];
 
-    if (isLoading && !quote) {
+    if (isQuoteLoading && !quote) {
         return (
             <tr className="animate-pulse border-b border-border-primary">
                 <td className="py-4" colSpan={4}>
@@ -80,7 +83,7 @@ function TradeRow({ symbol }: { symbol: string }) {
             {/* Sparkline Chart */}
             <td className="py-4 w-24">
                 <ResponsiveContainer width={80} height={32}>
-                    <LineChart data={chartData}>
+                    <LineChart data={displayChartData}>
                         <Line
                             type="monotone"
                             dataKey="v"

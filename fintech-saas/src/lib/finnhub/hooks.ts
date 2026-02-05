@@ -17,11 +17,23 @@ import finnhubWS, { TradeData } from './websocket';
 export function useRealtimeQuote(symbol: string) {
     const [price, setPrice] = useState<number | null>(null);
     const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+    const [isWsConnected, setIsWsConnected] = useState(false);
+
+    // Initial fetch to get a baseline price
+    useEffect(() => {
+        if (!symbol) return;
+        finnhubClient.getQuote(symbol)
+            .then(quote => {
+                setPrice(quote.c);
+                setLastUpdate(new Date());
+            })
+            .catch(err => console.error(`[Finnhub] Initial quote error for ${symbol}:`, err));
+    }, [symbol]);
 
     useEffect(() => {
         if (!symbol) return;
 
-        // Connect to WebSocket if not already connected
+        // Connect to WebSocket if possible
         finnhubWS.connect().catch(console.error);
 
         // Subscribe to symbol
@@ -30,12 +42,36 @@ export function useRealtimeQuote(symbol: string) {
             setLastUpdate(new Date(data.t));
         });
 
+        // Monitor connection status
+        const statusInterval = setInterval(() => {
+            setIsWsConnected(finnhubWS.isActive());
+        }, 5000);
+
         return () => {
             unsubscribe();
+            clearInterval(statusInterval);
         };
     }, [symbol]);
 
-    return { price, lastUpdate, isConnected: finnhubWS.isActive() };
+    // Fallback Polling if WebSocket is not active
+    useEffect(() => {
+        if (!symbol || isWsConnected) return;
+
+        console.log(`[Finnhub] Using polling fallback for ${symbol}`);
+        const pollInterval = setInterval(async () => {
+            try {
+                const quote = await finnhubClient.getQuote(symbol);
+                setPrice(quote.c);
+                setLastUpdate(new Date());
+            } catch (err) {
+                console.error(`[Finnhub] Polling error for ${symbol}:`, err);
+            }
+        }, 30000); // 30s polling fallback
+
+        return () => clearInterval(pollInterval);
+    }, [symbol, isWsConnected]);
+
+    return { price, lastUpdate, isConnected: isWsConnected };
 }
 
 /**
