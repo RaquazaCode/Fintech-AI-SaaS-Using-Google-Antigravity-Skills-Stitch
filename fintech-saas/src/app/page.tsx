@@ -5,11 +5,13 @@ import {
   TopMovers,
   NewsPanel,
   EventsTable,
+  OnboardingPopup,
 } from '@/components/dashboard';
 
 export default function HomePage() {
   return (
     <AppShell>
+      <OnboardingPopup />
       <div className="space-y-6">
         {/* Page Title */}
         <div>

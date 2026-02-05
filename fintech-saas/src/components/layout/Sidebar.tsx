@@ -1,5 +1,6 @@
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 
@@ -20,6 +21,20 @@ const navItems = [
 
 export default function Sidebar() {
     const pathname = usePathname();
+    const [userName, setUserName] = useState('Chris Johnson');
+
+    useEffect(() => {
+        const updateName = () => {
+            const storedName = localStorage.getItem('user_name');
+            if (storedName) {
+                setUserName(storedName);
+            }
+        };
+
+        updateName();
+        window.addEventListener('onboarding_updated', updateName);
+        return () => window.removeEventListener('onboarding_updated', updateName);
+    }, []);
 
     return (
         <aside className="w-[260px] h-screen bg-bg-secondary flex flex-col border-r border-border-primary">
@@ -78,12 +93,12 @@ export default function Sidebar() {
             {/* Bottom Section - User Profile */}
             <div className="p-4 border-t border-border-primary">
                 <div className="flex items-center gap-3 px-2">
-                    <div className="w-10 h-10 rounded-full bg-accent-purple flex items-center justify-center text-white font-medium">
-                        C
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-accent-purple to-accent-blue flex items-center justify-center text-white font-bold shadow-sm">
+                        {userName[0].toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
-                        <div className="text-sm font-medium truncate">Chris Johnson</div>
-                        <div className="text-xs text-text-secondary">Pro Account</div>
+                        <div className="text-sm font-bold truncate text-text-primary">{userName}</div>
+                        <div className="text-[10px] uppercase tracking-wider text-accent-blue font-bold">Pro Account</div>
                     </div>
                 </div>
             </div>

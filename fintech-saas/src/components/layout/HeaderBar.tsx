@@ -1,5 +1,7 @@
 'use client';
 
+import { useState, useEffect } from 'react';
+
 interface HeaderBarProps {
     unrealizedProfit?: number;
     realizedProfit?: number;
@@ -13,6 +15,26 @@ export default function HeaderBar({
     balance = 124830.00,
     availableMargin = 98450.00,
 }: HeaderBarProps) {
+    const [userName, setUserName] = useState('Chris');
+
+    useEffect(() => {
+        const updateName = () => {
+            const storedName = localStorage.getItem('user_name');
+            if (storedName) {
+                // Display first name and last initial
+                const parts = storedName.split(' ');
+                if (parts.length > 1) {
+                    setUserName(`${parts[0]} ${parts[1][0]}.`);
+                } else {
+                    setUserName(parts[0]);
+                }
+            }
+        };
+
+        updateName();
+        window.addEventListener('onboarding_updated', updateName);
+        return () => window.removeEventListener('onboarding_updated', updateName);
+    }, []);
     const formatCurrency = (value: number) => {
         return new Intl.NumberFormat('en-US', {
             style: 'currency',
@@ -80,7 +102,7 @@ export default function HeaderBar({
                 {/* Greeting */}
                 <div className="text-sm">
                     <span className="text-text-secondary">Good afternoon, </span>
-                    <span className="font-medium">Chris</span>
+                    <span className="font-medium">{userName}</span>
                 </div>
 
                 {/* Notifications */}
