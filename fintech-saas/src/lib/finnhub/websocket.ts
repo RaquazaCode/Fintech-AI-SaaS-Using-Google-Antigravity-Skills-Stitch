@@ -239,7 +239,7 @@ class FinnhubWebSocket {
         if (this.ws) {
             this.ws.close();
             this.ws = null;
-            this.isConnected = false;
+            this.connectionPromise = null;
             this.subscriptions.clear();
         }
     }
