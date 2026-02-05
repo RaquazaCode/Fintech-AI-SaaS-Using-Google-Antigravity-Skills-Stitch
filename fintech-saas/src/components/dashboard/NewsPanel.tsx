@@ -45,7 +45,9 @@ export default function NewsPanel() {
         <div className="card">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold">Latest News</h2>
-                <button className="text-sm text-accent-blue hover:underline">View all</button>
+                <Link href="/news" className="text-sm text-accent-blue hover:underline">
+                    View all news
+                </Link>
             </div>
 
             <div className="space-y-4">

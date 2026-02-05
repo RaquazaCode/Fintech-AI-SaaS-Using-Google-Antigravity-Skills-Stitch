@@ -1,6 +1,7 @@
 'use client';
 
 import { useEarningsCalendar } from '@/lib/finnhub/hooks';
+import Link from 'next/link';
 
 export default function EventsTable() {
     const { earnings, isLoading } = useEarningsCalendar(30);
@@ -28,7 +29,9 @@ export default function EventsTable() {
         <div className="card h-full">
             <div className="flex items-center justify-between mb-6">
                 <h2 className="text-lg font-semibold">Earnings Calendar</h2>
-                <button className="text-sm text-accent-blue hover:underline">View more</button>
+                <Link href="/calendar" className="text-sm text-accent-blue hover:underline">
+                    View more
+                </Link>
             </div>
 
             <div className="overflow-x-auto">
