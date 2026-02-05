@@ -1,0 +1,12 @@
+{
+    "name": "fintech-ai-saas-root",
+    "version": "1.0.0",
+    "description": "Root workspace for Fintech AI SaaS",
+    "private": true,
+    "scripts": {
+        "dev": "npm run dev --prefix fintech-saas",
+        "build": "npm run build --prefix fintech-saas",
+        "start": "npm run start --prefix fintech-saas",
+        "lint": "npm run lint --prefix fintech-saas"
+    }
+}
